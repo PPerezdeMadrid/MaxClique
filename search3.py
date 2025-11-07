@@ -17,76 +17,60 @@ def is_clique(graph, nodes):
 
 def search_max_clique(graph):
     """
-    Branch & Bound con cota de coloración greedy (tipo Tomita/MCQ).
-    Suele ser notablemente más rápido que un B&B con poda len(current)+len(remaining).
+    B&B with Greedy Colouring Bound.
     """
-    # Precompute grados para ordenar y para el colorista
+    # Degree order helps the colorer a bit
     deg = {v: len(graph[v]) for v in graph}
     vertices = sorted(graph.keys(), key=lambda v: deg[v], reverse=True)
 
     max_clique = []
     current = []
 
-    def greedy_coloring_bound(cand_set):
+    def greedy_coloring_bound(cands):
         """
-        Devuelve:
-          - order: lista de candidatos en el orden en que se colorean
-          - bound: bound[i] = color asignado a order[i] (nº de color, 1..k)
-        Construcción por capas: cada 'color' es un MIS (conjunto independiente) greedy.
+        Return order(candidates ordered by color) and bound(color indices).
         """
-        # Lista de nodos a colorear, ordenados por grado para acelerar
-        uncolored = sorted(cand_set, key=lambda v: deg[v], reverse=True)
+        uncolored = sorted(cands, key=lambda v: deg[v], reverse=True)
         order, bound = [], []
-        color = 0
+        color = 0 
 
-        # Para cada color, construimos un conjunto independiente maximal greedy
         while uncolored:
             color += 1
-            chosen = []
-            remaining = []
-            # Escogemos nodos que no choquen con los ya elegidos en este color
+            chosen, remaining = [], []
             for v in uncolored:
-                if all((v not in graph[u]) for u in chosen):
+                if all(v not in graph[u] for u in chosen):
                     chosen.append(v)
                 else:
                     remaining.append(v)
-            # Asignamos este color a los 'chosen'
             for v in chosen:
                 order.append(v)
                 bound.append(color)
-            # Continuamos con los que quedaron sin colorear
             uncolored = remaining
 
         return order, bound
 
-    def expand(cand_set):
+    def expand(cands):
         nonlocal max_clique
 
-        # Cota superior por coloración (muy efectiva para podar)
-        order, bound = greedy_coloring_bound(cand_set)
+        order, bound = greedy_coloring_bound(cands)
 
-        # Recorremos en orden inverso (más prometedor primero).
-        # Si len(current) + bound[i] <= len(max_clique), podemos cortar el resto.
+        # Go from most promising to least; prune by color bound
         for i in range(len(order) - 1, -1, -1):
             if len(current) + bound[i] <= len(max_clique):
-                return  # poda por cota de coloración
+                return
 
             v = order[i]
             current.append(v)
+            new_cands = cands & graph[v]
 
-            # Nuevos candidatos = vecinos de v dentro de cand_set
-            new_cand = cand_set & graph[v]
-
-            if not new_cand:
-                # Hoja: actualiza máximo si mejora
+            if not new_cands:
                 if len(current) > len(max_clique):
                     max_clique = current[:]
             else:
-                expand(new_cand)
+                expand(new_cands)
 
             current.pop()
-            # Eliminamos v de candidatos globales para no reexpandirlo
-            cand_set.discard(v)
+            cands.discard(v)
 
     expand(set(vertices))
     return max_clique
@@ -97,14 +81,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     filename = sys.argv[1]
-    num_vertices, edges = parse_dimacs_graph(filename)
+    n, edges = parse_dimacs_graph(filename)
 
-    # Convert edges to adjacency list representation (sets para intersecciones rápidas)
-    graph = {i: set() for i in range(1, num_vertices + 1)}
-    for u, v in edges:
-        graph[u].add(v)
-        graph[v].add(u)
+    # Adjacency as sets (fast intersections)
+    graph = {i: set() for i in range(1, n + 1)}
+    for a, b in edges:
+        graph[a].add(b)
+        graph[b].add(a)
 
-    result = search_max_clique(graph)
-    print(f"Maximum clique size: {len(result)}")
-    print(f"Maximum clique: {sorted(result)}")
+    clique = search_max_clique(graph)
+    print(f"Maximum clique size: {len(clique)}")
+    print(f"Maximum clique: {sorted(clique)}")

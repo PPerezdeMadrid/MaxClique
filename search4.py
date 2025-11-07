@@ -8,7 +8,7 @@ import sys
 from parser import parse_dimacs_graph
 
 def is_clique(graph, nodes):
-    """Check if the given nodes form a clique."""
+    """Return True if all nodes are pairwise connected."""
     for i in range(len(nodes)):
         for j in range(i + 1, len(nodes)):
             if nodes[j] not in graph[nodes[i]]:
@@ -16,54 +16,49 @@ def is_clique(graph, nodes):
     return True
 
 def search_max_clique(graph):
-    """
-    Branch and Bound (your search2) + initial vertex ordering by degree (descending).
-    The rest of the logic is unchanged, so you can isolate the effect of ordering.
-    """
-    # --- NEW: initial sorting (San Segundo et al., 2014) ---
+    """BnB with Initial Degree Ordering."""
+    # Order vertices by descending degree; tie-break by id
     deg = {v: len(graph[v]) for v in graph}
-    # Sort vertices by degree descending; stable tie-breaker on vertex id
     vertices = sorted(graph.keys(), key=lambda v: (deg[v], v), reverse=True)
 
     max_clique = []
 
     def heuristic(current, remaining):
-        # Simple bound: current size + remaining candidates
+        # Upper bound: what we have + what we could still add
         return len(current) + len(remaining)
 
     def backtrack(current, remaining, depth=0):
         nonlocal max_clique
 
-        # Update best
         if len(current) > len(max_clique):
             max_clique = current[:]
 
-        # Global prune for this node
+        # Stop if even the best-case here can’t beat the best so far
         if heuristic(current, remaining) <= len(max_clique):
             return
 
-        # Try adding each remaining vertex (preserves the initial degree order)
+        # Explore in the precomputed order
         for i in range(len(remaining)):
-            vertex = remaining[i]
+            v = remaining[i]
 
-            # Must connect to all in current
-            if all(neighbor in graph[vertex] for neighbor in current):
-                # Build next candidate list (still a list, preserves order)
-                new_remaining = []
-                for v in remaining[i+1:]:
-                    is_connected = True
+            # v must connect to everyone in current
+            if all(u in graph[v] for u in current):
+                # Next candidates: keep order, keep only those linked to current and v
+                next_remaining = []
+                for w in remaining[i + 1:]:
+                    ok = True
                     for c in current:
-                        if v not in graph[c]:
-                            is_connected = False
+                        if w not in graph[c]:
+                            ok = False
                             break
-                    if is_connected and v in graph[vertex]:
-                        new_remaining.append(v)
+                    if ok and w in graph[v]:
+                        next_remaining.append(w)
 
-                # Optional local prune before recursing (kept identical to your search2)
-                if heuristic(current + [vertex], new_remaining) <= len(max_clique):
-                    continue  # prune this branch and the rest at this depth (same behaviour as your code)
+                # Local prune as search2
+                if heuristic(current + [v], next_remaining) <= len(max_clique):
+                    continue
 
-                backtrack(current + [vertex], new_remaining, depth + 1)
+                backtrack(current + [v], next_remaining, depth + 1)
 
     backtrack([], vertices)
     return max_clique
@@ -74,14 +69,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     filename = sys.argv[1]
-    num_vertices, edges = parse_dimacs_graph(filename)
+    n, edges = parse_dimacs_graph(filename)
 
-    # Adjacency as sets (same as before)
-    graph = {i: set() for i in range(1, num_vertices + 1)}
-    for u, v in edges:
-        graph[u].add(v)
-        graph[v].add(u)
+    # Build adjacency sets
+    graph = {i: set() for i in range(1, n + 1)}
+    for a, b in edges:
+        graph[a].add(b)
+        graph[b].add(a)
 
-    result = search_max_clique(graph)
-    print(f"Maximum clique size: {len(result)}")
-    print(f"Maximum clique: {sorted(result)}")
+    clique = search_max_clique(graph)
+    print(f"Maximum clique size: {len(clique)}")
+    print(f"Maximum clique: {sorted(clique)}")

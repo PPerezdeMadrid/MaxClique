@@ -1,45 +1,26 @@
-# Maximum Clique: Branch & Bound with Initial Degree Ordering (search2)
+# Maximum Clique: Branch & Bound with Initial Degree Ordering
 
-This is a simple write-up of the **search2** version where we add **initial vertex ordering by degree (high to low)**. Everything else stays the same as your original `search2`, so you can measure the effect of ordering alone.
+This is a simple write-up of the search2 version where it is added initial vertex ordering by degree (high to low).
 
 
 ## Goal
 
-Find the **maximum clique** in a graph using **backtracking (Branch & Bound)**.
-We keep the same pruning rule as before and only change the **starting order of vertices**.
+Find the maximum clique in a graph. The same pruning rule as before is used, and only the starting order of the vertices is changed.
 
 
 ## What changed
 
-* **New step:** before the search starts, sort all vertices by **degree descending** (most connected first).
-* All other parts (pruning, recursion, candidate building) are **unchanged** from your `search2`.
+* New step: before the search starts, sort all vertices by degree descending (most connected first).
+* All other parts (pruning, recursion, candidate building) are unchanged from the `search2`.
 
 Why degree first? Highly connected vertices are more likely to form large cliques. Exploring them early often helps the bound cut more branches.
-
-
-## Data structures
-
-* Graph stored as **sets of neighbours**: fast `in` checks and set logic.
-* Candidate lists kept as **Python lists** inside the recursion to preserve the chosen order.
-
-
-## Pruning rule (same as before)
-
-We use a very simple upper bound:
-
-```
-bound = len(current) + len(remaining)
-```
-
-If this bound is **not greater** than the best clique found so far, we **stop** exploring that branch.
-
 
 ## Algorithm steps
 
 1. **Preprocess**
 
    * Compute the degree of each vertex.
-   * Sort vertices by degree (high → low). This is our initial order.
+   * Sort vertices by degree (high → low). This the initial order.
 
 2. **Backtrack**
 
@@ -48,8 +29,8 @@ If this bound is **not greater** than the best clique found so far, we **stop** 
    * For each vertex `v` in `remaining` (in the sorted order):
 
      * Check `v` is connected to all in `current`.
-     * Build `new_remaining` = vertices after `v` that are connected to **all** of `current` **and** to `v`.
-     * Optional local prune (same as your code): if `len(current)+1 + len(new_remaining) <= len(max_clique)`, return.
+     * Build `new_remaining` = vertices after `v` that are connected to all of `current` and to `v`.
+     * Same local pruning as in `search 2`.
      * Recurse with `current + [v]` and `new_remaining`.
 
 3. **Finish**
@@ -95,14 +76,7 @@ search_max_clique(G):
 
 ## Why this helps
 
-* Starting from **high-degree** vertices often reaches **large cliques earlier**.
-* Finding a good clique early **raises the bar** for pruning, so later branches get cut sooner.
-* The colouring bound is not used here; the gain comes purely from **better initial order**.
-
-
-## Limitations
-
-* The bound `len(current) + len(remaining)` is **weak** on many graphs.
-* Degree ordering is good but **not always best**. Some graphs prefer other orderings (e.g., degeneracy on sparse graphs, or colour-based orders).
+* Starting from high-degree vertices often reaches large cliques earlier.
+* Finding a good clique early raises the bar for pruning, so later branches get cut sooner.
 
 

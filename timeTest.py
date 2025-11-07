@@ -153,16 +153,16 @@ def main():
         graphs = [f for f in os.listdir(DIMACS_FOLDER) if f.endswith(".clq")]
         graphs.sort()
 
-        print("\nGenerating plots...")
-        generate_plots_from_csv(OUTPUT_FILE)
-        print("Plots finished.")
-
         if not graphs:
             print("No .clq files found in DIMACS folder.")
             sys.exit(1)
 
         for g in graphs:
             test_one_graph(g)
+            
+        print("\nGenerating plots...")
+        generate_plots_from_csv(OUTPUT_FILE)
+        print("Plots finished.")
 
     print("\nAll tests finished.")
 

@@ -2,24 +2,17 @@
 
 ## Core idea
 
-We keep a **current clique** we’re building, and a set of **candidates** that could extend it.
-Before exploring deeper, we estimate the **best possible** clique we could still make from those candidates. If that upper bound can’t beat the best solution we already have, we **stop** exploring that branch.
+We grow a current clique and keep a set of candidates that might extend it.
+Before going deeper, we estimate the best we could still do with those candidates. If that upper limit can’t beat our best answer so far, we stop on that branch.
 
-The bound comes from a **greedy graph colouring**: the number of colours used is an upper limit on how big a clique can be inside those candidates.
-
-## Data structures
-
-* The graph is stored as **sets of neighbours**: `graph[v]` is a `set`.
-  This makes checks like `u in graph[v]` and intersections `cand & graph[v]` fast.
-* Candidates are kept as a **set** too, for the same reason.
-
+The bound comes from a greedy graph colouring: the number of colours used is an upper limit on how big a clique can be inside those candidates.
 
 ## How the greedy colouring bound works
 
-We colour the candidate vertices in simple greedy layers. Each “colour” is a set of vertices with **no edges between them** (an independent set). We keep making such layers until all candidates are coloured.
+We colour the candidate vertices in simple greedy layers. Each “colour” is a set of vertices with no edges between them (an independent set). We keep making such layers until all candidates are coloured.
 
-* The **number of colours** used is our **upper bound**: you can’t get a clique larger than that from the remaining candidates.
-* We also keep the **order** in which vertices were coloured and the colour index for each one. We expand vertices in **reverse colour order** (the most “difficult” ones first), which usually triggers pruning earlier.
+* The number of colours used is our upper bound: you can’t get a clique larger than that from the remaining candidates.
+* We also keep the order in which vertices were coloured and the colour index for each one. We expand vertices in reverse colour order (the most “difficult” ones first), which usually triggers pruning earlier.
 
 **Sketch:**
 
@@ -45,8 +38,8 @@ while uncoloured not empty:
 ## The search (expand)
 
 1. Compute the colouring on the current candidates → `order`, `bound`.
-2. Go through `order` **from the end to the start** (reverse colour order).
-3. **Prune** if:
+2. Go through `order` from the end to the start (reverse colour order).
+3. Prune if:
 
    ```
    len(current) + bound[i] <= len(max_clique)
@@ -67,9 +60,9 @@ while uncoloured not empty:
 
 ## Why it’s fast
 
-* **Tight upper bound:** the greedy colouring gives a much better upper bound than “current size + remaining count”, so we prune far more branches.
-* **Good ordering:** processing vertices in reverse colouring order tends to hit dead ends (and prune) sooner.
-* **Set math:** using `set` intersections is much faster than nested loops.
+- **Tighter bound**: greedy colouring beats the loose “current size + remaining count”, so we prune far more.
+- **Helpful order**: reverse colouring order tends to find dead ends (and prune) earlier.
+- **Set operations**: intersections are much cheaper than nested loops.
 
 
 ## Pseudocode
@@ -127,7 +120,7 @@ search_max_clique(G):
 * When candidates run out, `current` is maximal; we keep the largest found.
 
 
-## Practical results (your run)
+## Practical results with a random instance
 
 | Algorithm                | Time on `MANN_a9.clq` | Clique size |
 | ------------------------ | --------------------: | ----------: |
@@ -136,3 +129,4 @@ search_max_clique(G):
 | `search3` (this version) |           **0.002 s** |          16 |
 
 **In short:** the greedy colouring bound and set-based filtering do the heavy lifting.
+> Note: the test will be added to the final report as the result of executing the `timeTest.py` script

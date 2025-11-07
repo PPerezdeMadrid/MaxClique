@@ -11,8 +11,8 @@ TEST_FILE_1 = "johnson8-2-4.clq"  # Smallest instance
 SOL_MAX_CLIQUE_SIZE_1 = 4         # Known max clique size for this graph
 TEST_FILE_2 = "p_hat300-1.clq"
 SOL_MAX_CLIQUE_SIZE_2 = 8
-TEST_FILE_3 = "san400_0.5_1.clq"
-SOL_MAX_CLIQUE_SIZE_3 = 13
+TEST_FILE_3 = "brock200_2.clq"
+SOL_MAX_CLIQUE_SIZE_3 = 12
 
 
 def build_graph(filename):
@@ -78,33 +78,31 @@ class Test(unittest.TestCase):
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_2)
 
 
-
-    """ takes too long
-    def test_san_search(self):
+    def test_brook_search(self):
         print(f"Testing {TEST_FILE_3} with search.py")
         graph = build_graph(TEST_FILE_3)
         result = search_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
 
-    def test_san_search2(self):
+    def test_brook_search2(self):
         print(f"Testing {TEST_FILE_3} with search2.py")
         graph = build_graph(TEST_FILE_3)
         result = search2_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
 
 
-    def test_san_search3(self):
+    def test_brook_search3(self):
         print(f"Testing {TEST_FILE_3} with search3.py")
         graph = build_graph(TEST_FILE_3)
         result = search3_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
 
-    def test_san_search4(self):
+    def test_brook_search4(self):
         print(f"Testing {TEST_FILE_3} with search4.py")
         graph = build_graph(TEST_FILE_3)
         result = search4_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
-    """
+    
 
 if __name__ == "__main__":
     unittest.main()
