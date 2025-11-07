@@ -141,6 +141,7 @@ def generate_plots_from_csv(csv_path=OUTPUT_FILE):
         print(f"[plot] Saved {out_path}")
     else:
         print("[plot] No valid numeric data to compute averages.")
+# ------------- End of plot code -------------
 
 def main():
     # If a specific graph is given, test just that one
