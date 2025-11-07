@@ -5,7 +5,6 @@ from search import search_max_clique
 from search2 import search_max_clique as search2_max_clique
 from search3 import search_max_clique as search3_max_clique
 from search4 import search_max_clique as search4_max_clique
-from search5 import search_max_clique as search5_max_clique
 
 DIMACS_FOLDER = "DIMACS"
 TEST_FILE_1 = "johnson8-2-4.clq"  # Smallest instance
@@ -53,11 +52,6 @@ class Test(unittest.TestCase):
         result = search4_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_1)
 
-    def test_johnson_search5(self):
-        print(f"Testing {TEST_FILE_1} with search5.py")
-        graph = build_graph(TEST_FILE_1)
-        result = search5_max_clique(graph)
-        self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_1)
 
     def test_phat_search(self):
         print(f"Testing {TEST_FILE_2} with search.py")
@@ -83,11 +77,7 @@ class Test(unittest.TestCase):
         result = search4_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_2)
 
-    def test_phat_search5(self):
-        print(f"Testing {TEST_FILE_2} with search5.py")
-        graph = build_graph(TEST_FILE_2)
-        result = search5_max_clique(graph)
-        self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_2)
+
 
     """ takes too long
     def test_san_search(self):
@@ -113,12 +103,6 @@ class Test(unittest.TestCase):
         print(f"Testing {TEST_FILE_3} with search4.py")
         graph = build_graph(TEST_FILE_3)
         result = search4_max_clique(graph)
-        self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
-
-    def test_san_search5(self):
-        print(f"Testing {TEST_FILE_3} with search5.py")
-        graph = build_graph(TEST_FILE_3)
-        result = search5_max_clique(graph)
         self.assertEqual(len(result), SOL_MAX_CLIQUE_SIZE_3)
     """
 

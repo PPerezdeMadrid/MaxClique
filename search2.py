@@ -55,7 +55,7 @@ def search_max_clique(graph):
                 
                 # Prune before recursing
                 if heuristic(current + [vertex], new_remaining) <= len(max_clique):
-                    return  # Prune branch
+                    continue  # Prune branch, continue because we want to try next vertex
                 
                 # Continue exploring
                 backtrack(current + [vertex], new_remaining, depth + 1)
