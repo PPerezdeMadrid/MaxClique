@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # List of search versions to compare
 VERSIONS = ["search", "search2", "search3", "search4"]
-DIMACS_FOLDER = "DIMACS"
+DIMACS_FOLDER = "../DIMACS"
 OUTPUT_FILE = "results.csv"
 PLOTS_DIR = "plots" 
 

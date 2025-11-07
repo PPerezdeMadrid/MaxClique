@@ -4,10 +4,11 @@ import time
 from parser import parse_dimacs_graph
 from search import search_max_clique
 
+DIMACS_FOLDER = "DIMACS"
 def run_single_graph(file_name):
     """Run the search algorithm on one graph file"""
     print(f"\nRunning {file_name}...")
-    path = os.path.join("DIMACS", file_name)
+    path = os.path.join(DIMACS_FOLDER, file_name)
 
     # Read graph
     num_vertices, edges = parse_dimacs_graph(path)

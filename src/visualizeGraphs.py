@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from parser import parse_dimacs_graph
 
-DIMACS_FOLDER = "DIMACS"
+DIMACS_FOLDER = "../DIMACS"
 
 def load_graph(file_name):
     """Reads a DIMACS file and returns a NetworkX graph"""
