@@ -3,8 +3,8 @@ import os
 from parser import parse_dimacs_graph
 from search import search_max_clique
 from search2 import search_max_clique as search2_max_clique
-from search3 import search_max_clique as search3_max_clique
-from search4 import search_max_clique as search4_max_clique
+from search4 import search_max_clique as search3_max_clique
+from search3 import search_max_clique as search4_max_clique
 
 DIMACS_FOLDER = "../DIMACS"
 TEST_FILE_1 = "johnson8-2-4.clq"  # Smallest instance

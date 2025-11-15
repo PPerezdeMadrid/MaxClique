@@ -5,6 +5,7 @@ import os
 import sys
 from parser import parse_dimacs_graph
 import matplotlib.pyplot as plt
+import multiprocessing
 
 # List of search versions to compare
 VERSIONS = ["search", "search2", "search3", "search4"]
@@ -24,14 +25,52 @@ def load_graph(file_name):
         graph[v].add(u)
     return graph
 
-def run_version(module_name, graph):
-    """Runs one version of search and returns time + clique size"""
+
+def _worker(func, graph, return_dict):
+    """Internal worker that runs the search algorithm in a separate process."""
+    try:
+        result = func(graph)
+        return_dict["result"] = result
+        return_dict["error"] = None
+    except Exception as e:
+        return_dict["result"] = None
+        return_dict["error"] = str(e)
+
+def run_version(module_name, graph, timeout=600):
+    """
+    Runs one version of search inside a separate process.
+    If it takes longer than 'timeout' seconds (default: 10 minutes),
+    it will be terminated and recorded as a timeout.
+    """
     mod = importlib.import_module(module_name)
     func = getattr(mod, "search_max_clique")
+
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+
+    p = multiprocessing.Process(target=_worker, args=(func, graph, return_dict))
     start = time.time()
-    result = func(graph)
+    p.start()
+    p.join(timeout)
+
+    if p.is_alive():
+        # Timeout happened --> kill the process
+        p.terminate()
+        p.join()
+        return "timeout", None 
+
     end = time.time()
+
+    if return_dict.get("error") is not None:
+        # Error raised inside the worker
+        return "error", None
+
+    result = return_dict.get("result")
+    if result is None:
+        return "error", None
+
     return end - start, len(result)
+
 
 def test_one_graph(graph_file):
     """Runs all search versions on one graph"""
@@ -43,8 +82,15 @@ def test_one_graph(graph_file):
         print(f"Running {version}...")
         try:
             t, size = run_version(version, graph)
-            results[version] = round(t, 3)
-            print(f"     ==> time = {t:.3f}s, clique size = {size}")
+
+            # If timeout or error, store the string directly
+            if isinstance(t, (int, float)):
+                results[version] = round(t, 3)
+                print(f"     ==> time = {t:.3f}s, clique size = {size}")
+            else:
+                results[version] = t  # "timeout" or "error"
+                print(f"     ==> time = {t}, clique size = {size}")
+
         except Exception as e:
             print(f"     ==> error running {version}: {e}")
             results[version] = "error"
@@ -59,7 +105,7 @@ def test_one_graph(graph_file):
 
     print(f"Saved results for {graph_file}")
 
-# ------------- Code for plot: generated with AI -------------
+# Code for generating plots from results.csv
 def _safe_float(v):
     try:
         return float(v)

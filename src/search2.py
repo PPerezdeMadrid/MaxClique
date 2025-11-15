@@ -1,6 +1,6 @@
 """
 Basic implementation of Branch and Bound.
-Based on: A Simple and Faster Branch-and‑Bound Algorithm for Finding a Maximum Clique — Etsuji Tomita et al., 2010.  ==> ¡https://link.springer.com/chapter/10.1007/978-3-642-11440-3_18
+Adding a global prune when exploring branches.
 """
 import sys
 from parser import parse_dimacs_graph
@@ -19,7 +19,6 @@ def search_max_clique(graph):
     max_clique = []
 
     def heuristic(current, remaining):
-        # Best case from here: what we have + candidates left
         return len(current) + len(remaining)
 
     def backtrack(current, remaining, depth=0):
@@ -34,26 +33,26 @@ def search_max_clique(graph):
 
         # Try each next vertex
         for i in range(len(remaining)):
-            v = remaining[i]
+            vertex = remaining[i]
 
-            # v must connect to everyone in current
-            if all(u in graph[v] for u in current):
+            # candidate must connect to everyone in current
+            if all(neighbour in graph[vertex] for neighbour in current):
                 # Rebuild next candidates (intentionally simple/inefficient)
                 next_remaining = []
-                for w in remaining[i + 1:]:
-                    ok = True
-                    for c in current:
-                        if w not in graph[c]:
-                            ok = False
+                for other in remaining[i + 1:]:
+                    is_connected = True
+                    for v_in_clique in current:
+                        if other not in graph[v_in_clique]:
+                            is_connected = False
                             break
-                    if ok and w in graph[v]:
-                        next_remaining.append(w)
+                    if is_connected and other in graph[vertex]:
+                        next_remaining.append(other)
 
                 # Local prune before diving deeper
-                if heuristic(current + [v], next_remaining) <= len(max_clique):
+                if heuristic(current + [vertex], next_remaining) <= len(max_clique):
                     continue
 
-                backtrack(current + [v], next_remaining, depth + 1)
+                backtrack(current + [vertex], next_remaining, depth + 1)
 
     backtrack([], vertices)
     return max_clique

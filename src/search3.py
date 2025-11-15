@@ -1,14 +1,14 @@
 """
-Search 2 algorithm with a Greedy Colouring Bound (Etsuji Tomita approach).
-A Simple and Faster Branch-and‑Bound Algorithm for Finding a Maximum Clique — Etsuji Tomita et al., 2010. 
-https://link.springer.com/chapter/10.1007/978-3-642-11440-3_18 
+Search 2 algorithm with Initial Degree Ordering (Pablo San Segundo approach).
+Initial Sorting of Vertices in the Maximum Clique Problem Reviewed — Pablo San Segundo et al., 2014. csplib.org
+https://link.springer.com/chapter/10.1007/978-3-642-11440-3_18
 """
 
 import sys
 from parser import parse_dimacs_graph
 
 def is_clique(graph, nodes):
-    """Check if the given nodes form a clique."""
+    """Return True if all nodes are pairwise connected."""
     for i in range(len(nodes)):
         for j in range(i + 1, len(nodes)):
             if nodes[j] not in graph[nodes[i]]:
@@ -16,63 +16,52 @@ def is_clique(graph, nodes):
     return True
 
 def search_max_clique(graph):
-    """
-    B&B with Greedy Colouring Bound.
-    """
-    # Degree order helps the colorer a bit
-    deg = {v: len(graph[v]) for v in graph}
-    vertices = sorted(graph.keys(), key=lambda v: deg[v], reverse=True)
+    """BnB with Initial Degree Ordering."""
+    # Order vertices by descending degree; tie-break by id
+    deg = {v: len(graph[v]) for v in graph} # degree map
+    vertices = sorted(graph.keys(), key=lambda v: (deg[v], v), reverse=True) # ordered vertices
+    
 
     max_clique = []
-    current = []
 
-    def greedy_coloring_bound(cands):
-        """
-        Return order(candidates ordered by color) and bound(color indices).
-        """
-        uncolored = sorted(cands, key=lambda v: deg[v], reverse=True)
-        order, bound = [], []
-        color = 0 
+    def heuristic(current, remaining):
+        # Upper bound: what we have + what we could still add
+        return len(current) + len(remaining)
 
-        while uncolored:
-            color += 1
-            chosen, remaining = [], []
-            for v in uncolored:
-                if all(v not in graph[u] for u in chosen):
-                    chosen.append(v)
-                else:
-                    remaining.append(v)
-            for v in chosen:
-                order.append(v)
-                bound.append(color)
-            uncolored = remaining
-
-        return order, bound
-
-    def expand(cands):
+    def backtrack(current, remaining, depth=0):
         nonlocal max_clique
 
-        order, bound = greedy_coloring_bound(cands)
+        if len(current) > len(max_clique):
+            max_clique = current[:]
 
-        # Go from most promising to least; prune by color bound
-        for i in range(len(order) - 1, -1, -1):
-            if len(current) + bound[i] <= len(max_clique):
-                return
+        # Stop if even the best-case here can’t beat the best so far
+        if heuristic(current, remaining) <= len(max_clique):
+            return
 
-            v = order[i]
-            current.append(v)
-            new_cands = cands & graph[v]
+        # Explore in the precomputed order
+        for i in range(len(remaining)):
+            vertex = remaining[i]
 
-            if not new_cands:
-                if len(current) > len(max_clique):
-                    max_clique = current[:]
-            else:
-                expand(new_cands)
+            # v must connect to everyone in current
+            if all(neighbour in graph[vertex] for neighbour in current):
+                # Rebuild next candidates (intentionally simple/inefficient)
+                next_remaining = []
+                for other in remaining[i + 1:]:
+                    is_connected = True
+                    for v_in_clique in current:
+                        if other not in graph[v_in_clique]:
+                            is_connected = False
+                            break
+                    if is_connected and other in graph[vertex]:
+                        next_remaining.append(other)
 
-            current.pop()
-            cands.discard(v)
+                # Local prune as search2
+                if heuristic(current + [vertex], next_remaining) <= len(max_clique):
+                    continue
 
-    expand(set(vertices))
+                backtrack(current + [vertex], next_remaining, depth + 1)
+
+    backtrack([], vertices)
     return max_clique
 
 if __name__ == "__main__":
@@ -83,7 +72,7 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     n, edges = parse_dimacs_graph(filename)
 
-    # Adjacency as sets (fast intersections)
+    # Build adjacency sets
     graph = {i: set() for i in range(1, n + 1)}
     for a, b in edges:
         graph[a].add(b)
